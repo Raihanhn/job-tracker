@@ -34,30 +34,40 @@ export default function Dashboard() {
   }, []);
 
   const fetchJobs = async () => {
-    const { data, error } = await supabase
-      .from("job_applications")
-      .select("*")
-      .order("application_date", { ascending: false });
-    if (!error) setJobs(data as Job[]);
-    setLoading(false);
-  };
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+
+  const { data, error } = await supabase
+    .from("job_applications")
+    .select("*")
+    .eq("user_id", user.id) // <--- filter only the logged-in user's jobs
+    .order("application_date", { ascending: false });
+
+  if (!error) setJobs(data as Job[]);
+  setLoading(false);
+};
 
   // Add new job
-  const handleAddJob = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const { error } = await supabase.from("job_applications").insert([{
-      company_name: company,
-      role,
-      application_date: date,
-      status,
-      notes
-    }]);
-    if (error) alert(error.message);
-    else {
-      fetchJobs();
-      setCompany(""); setRole(""); setDate(""); setStatus(""); setNotes("");
-    }
-  };
+const handleAddJob = async (e: React.FormEvent) => {
+  e.preventDefault();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+
+  const { error } = await supabase.from("job_applications").insert([{
+    user_id: user.id,         // <--- important
+    company_name: company,
+    role,
+    application_date: date,
+    status,
+    notes
+  }]);
+  if (error) alert(error.message);
+  else {
+    fetchJobs();
+    setCompany(""); setRole(""); setDate(""); setStatus(""); setNotes("");
+  }
+};
+
 
   // Update job
   const handleUpdateJob = async (id: number) => {
