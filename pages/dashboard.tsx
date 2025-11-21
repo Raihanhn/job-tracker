@@ -26,7 +26,9 @@ export default function Dashboard() {
   // Check if user is logged in
   useEffect(() => {
     const checkUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) router.push("/auth");
       else fetchJobs();
     };
@@ -34,46 +36,58 @@ export default function Dashboard() {
   }, []);
 
   const fetchJobs = async () => {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return;
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return;
 
-  const { data, error } = await supabase
-    .from("job_applications")
-    .select("*")
-    .eq("user_id", user.id) // <--- filter only the logged-in user's jobs
-    .order("application_date", { ascending: false });
+    const { data, error } = await supabase
+      .from("job_applications")
+      .select("*")
+      .eq("user_id", user.id) // <--- filter only the logged-in user's jobs
+      .order("application_date", { ascending: false });
 
-  if (!error) setJobs(data as Job[]);
-  setLoading(false);
-};
+    if (!error) setJobs(data as Job[]);
+    setLoading(false);
+  };
 
   // Add new job
-const handleAddJob = async (e: React.FormEvent) => {
-  e.preventDefault();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return;
+  const handleAddJob = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return;
 
-  const { error } = await supabase.from("job_applications").insert([{
-    user_id: user.id,         // <--- important
-    company_name: company,
-    role,
-    application_date: date,
-    status,
-    notes
-  }]);
-  if (error) alert(error.message);
-  else {
-    fetchJobs();
-    setCompany(""); setRole(""); setDate(""); setStatus(""); setNotes("");
-  }
-};
-
+    const { error } = await supabase.from("job_applications").insert([
+      {
+        user_id: user.id, // <--- important
+        company_name: company,
+        role,
+        application_date: date,
+        status,
+        notes,
+      },
+    ]);
+    if (error) alert(error.message);
+    else {
+      fetchJobs();
+      setCompany("");
+      setRole("");
+      setDate("");
+      setStatus("");
+      setNotes("");
+    }
+  };
 
   // Update job
   const handleUpdateJob = async (id: number) => {
     const newStatus = prompt("Enter new status:");
     if (!newStatus) return;
-    const { error } = await supabase.from("job_applications").update({ status: newStatus }).eq("id", id);
+    const { error } = await supabase
+      .from("job_applications")
+      .update({ status: newStatus })
+      .eq("id", id);
     if (error) alert(error.message);
     else fetchJobs();
   };
@@ -81,26 +95,69 @@ const handleAddJob = async (e: React.FormEvent) => {
   // Delete job
   const handleDeleteJob = async (id: number) => {
     if (!confirm("Are you sure to delete?")) return;
-    const { error } = await supabase.from("job_applications").delete().eq("id", id);
+    const { error } = await supabase
+      .from("job_applications")
+      .delete()
+      .eq("id", id);
     if (error) alert(error.message);
     else fetchJobs();
   };
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
-      <h1 className="text-3xl font-bold text-indigo-600 mb-6">My Job Applications</h1>
+      <h1 className="text-3xl font-bold text-indigo-600 mb-6">
+        My Job Applications
+      </h1>
 
       {/* Add Job Form */}
       <form onSubmit={handleAddJob} className="mb-6 bg-white p-4 rounded shadow">
-        <div className="flex flex-col gap-2">
-          <input placeholder="Company" value={company} onChange={e => setCompany(e.target.value)} className="border p-2"/>
-          <input placeholder="Role" value={role} onChange={e => setRole(e.target.value)} className="border p-2"/>
-          <input type="date" placeholder="Application Date" value={date} onChange={e => setDate(e.target.value)} className="border p-2"/>
-          <input placeholder="Status" value={status} onChange={e => setStatus(e.target.value)} className="border p-2"/>
-          <input placeholder="Notes" value={notes} onChange={e => setNotes(e.target.value)} className="border p-2"/>
-          <button type="submit" className="bg-green-500 text-white py-2 rounded">Add Job</button>
-        </div>
-      </form>
+  <div className="flex flex-col gap-2">
+    <input
+      placeholder="Company"
+      value={company}
+      onChange={(e) => setCompany(e.target.value)}
+      className="border p-2"
+      required
+    />
+    <input
+      placeholder="Role"
+      value={role}
+      onChange={(e) => setRole(e.target.value)}
+      className="border p-2"
+      required
+    />
+    <input
+      type="date"
+      placeholder="Application Date"
+      value={date}
+      onChange={(e) => setDate(e.target.value)}
+      className="border p-2"
+      required
+    />
+    <select
+      value={status}
+      onChange={(e) => setStatus(e.target.value)}
+      className="border p-2"
+      required
+    >
+      <option value="">Select Status</option>
+      <option value="Applied">Applied</option>
+      <option value="Interview">Interview</option>
+      <option value="Offer">Offer</option>
+      <option value="Rejected">Rejected</option>
+    </select>
+    <input
+      placeholder="Notes"
+      value={notes}
+      onChange={(e) => setNotes(e.target.value)}
+      className="border p-2"
+    />
+    <button type="submit" className="bg-green-500 text-white py-2 rounded">
+      Add Job
+    </button>
+  </div>
+</form>
+
 
       {/* Jobs Table */}
       {loading ? (
@@ -125,11 +182,39 @@ const handleAddJob = async (e: React.FormEvent) => {
                 <td className="p-2">{job.company_name}</td>
                 <td className="p-2">{job.role}</td>
                 <td className="p-2">{job.application_date}</td>
-                <td className="p-2">{job.status}</td>
+                {/* <td className="p-2">{job.status}</td> */}
+                <td className="p-2">
+                  <span
+                    className={`px-2 py-1 rounded font-semibold ${
+                      job.status === "Applied"
+                        ? "bg-blue-100 text-blue-800"
+                        : job.status === "Interview"
+                        ? "bg-yellow-100 text-yellow-800"
+                        : job.status === "Offer"
+                        ? "bg-green-100 text-green-800"
+                        : job.status === "Rejected"
+                        ? "bg-red-100 text-red-800"
+                        : "bg-gray-100 text-gray-800"
+                    }`}
+                  >
+                    {job.status}
+                  </span>
+                </td>
+
                 <td className="p-2">{job.notes}</td>
                 <td className="p-2 flex gap-2">
-                  <button onClick={() => handleUpdateJob(job.id)} className="bg-yellow-400 px-2 py-1 rounded">Edit</button>
-                  <button onClick={() => handleDeleteJob(job.id)} className="bg-red-500 text-white px-2 py-1 rounded">Delete</button>
+                  <button
+                    onClick={() => handleUpdateJob(job.id)}
+                    className="bg-yellow-400 px-2 py-1 rounded"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDeleteJob(job.id)}
+                    className="bg-red-500 text-white px-2 py-1 rounded"
+                  >
+                    Delete
+                  </button>
                 </td>
               </tr>
             ))}
