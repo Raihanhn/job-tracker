@@ -15,13 +15,16 @@ export default function Dashboard() {
   const router = useRouter();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
+  const getToday = () => new Date().toISOString().split("T")[0];
+
 
   // Add job form state
   const [company, setCompany] = useState("");
   const [role, setRole] = useState("");
-  const [date, setDate] = useState("");
+  const [date, setDate] = useState(getToday());
   const [status, setStatus] = useState("");
   const [notes, setNotes] = useState("");
+  
 
 
   const [editingJob, setEditingJob] = useState<Job | null>(null);
