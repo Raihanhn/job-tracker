@@ -22,7 +22,7 @@ export default function Dashboard() {
   const [company, setCompany] = useState("");
   const [role, setRole] = useState("");
   const [date, setDate] = useState(getToday());
-  const [status, setStatus] = useState("");
+  const [status, setStatus] = useState("Applied");
   const [notes, setNotes] = useState("");
   
 
@@ -183,7 +183,6 @@ const handleSaveEdit = async () => {
       className="border p-2"
       required
     >
-      <option value="">Select Status</option>
       <option value="Applied">Applied</option>
       <option value="Interview">Interview</option>
       <option value="Offer">Offer</option>
